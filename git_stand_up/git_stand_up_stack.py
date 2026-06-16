@@ -6,7 +6,7 @@ from aws_cdk import (
     RemovalPolicy
 )
 from constructs import Construct
-
+import os
 class GitStandUpStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -37,7 +37,8 @@ class GitStandUpStack(Stack):
             code=_lambda.Code.from_asset("lambda"),
             handler="webhook_worker.handler",
             environment={
-                "TABLE_NAME": git_standup_table.table_name
+                "TABLE_NAME": git_standup_table.table_name,
+                "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", "") #  Add this line to pass the key live!
             }
         )
 

@@ -2,64 +2,90 @@ import json
 import os
 import boto3
 from datetime import datetime
+import urllib.request  # Built-in library to make fast API calls without installing extra packages
 
-# Initialize the DynamoDB client out-of-band to optimize warm execution performance
+# 1. Import your custom prompt engine from yesterday!
+from ai_prompt_engine import SYSTEM_STANDUP_PROMPT, build_user_prompt
+
+# Initialize AWS services
 dynamodb = boto3.resource('dynamodb')
-# We will pass the exact table name securely from our CDK infrastructure stack using an Environment Variable
 TABLE_NAME = os.environ.get('TABLE_NAME', 'GitStandupData')
 table = dynamodb.Table(TABLE_NAME)
 
-def handler(event, context):
-    print("🚀 Received raw webhook event from GitHub:", json.dumps(event))
+# Pull your OpenAI Key securely from the environment variables
+# (We will inject this using CDK in the next step!)
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
+def call_llm(repo_name, commit_msg):
+    """Makes a lightweight, secure HTTP POST request to the AI model engine."""
+    if not OPENAI_API_KEY:
+        print("⚠️ Missing OpenAI API Key. Skipping AI transformation.")
+        return "AI Summary Unavailable (Missing API Key)"
+
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
     
+    # Bundle our isolated instructions and the user commit data together
+    data = {
+        "model": "gpt-4o-mini", # Using a highly optimized, fast, and cheap model
+        "messages": [
+            {"role": "system", "content": SYSTEM_STANDUP_PROMPT},
+            {"role": "user", "content": build_user_prompt(repo_name, commit_msg)}
+        ],
+        "temperature": 0.3 # Low temperature means consistent, professional output
+    }
+
     try:
-        # 1. Parse the incoming request body sent by GitHub's webhook
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            return res_data['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        print(f"❌ LLM API Network Error: {str(e)}")
+        return f"Error generating summary: {str(e)}"
+
+
+def handler(event, context):
+    print("🚀 Received webhook event...")
+    try:
         body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})
-        
-        # 2. Extract crucial commit details from the GitHub Webhook schema
-        # We handle cases where fields might be absent using safe .get() defaults
         repository_name = body.get('repository', {}).get('name', 'unknown-repo')
         pusher_name = body.get('pusher', {}).get('name', 'anonymous-coder')
         commits = body.get('commits', [])
-        
+        # GitHub is deliberately sending you empty requests to test if your servers are alive
         if not commits:
-            return {
-                "statusCode": 200,
-                "body": json.dumps({"message": "Webhook ping verified successfully or no active commits found."})
-            }
+            return {"statusCode": 200, "body": json.dumps({"message": "Ping verified."})}
             
-        print(f"📦 Processing {len(commits)} incoming commits pushed by {pusher_name}...")
-        
-        # 3. Iterate over every commit inside the push block and save it to DynamoDB
         for commit in commits:
-            commit_id = commit.get('id')         # Unique SHA hash of the commit
-            commit_msg = commit.get('message')   # The text message you wrote
-            commit_time = commit.get('timestamp') # ISO timestamp of the commit
+            commit_id = commit.get('id')
+            raw_msg = commit.get('message')
+            commit_time = commit.get('timestamp')
             
-            # Formulate the composite key layout matching our DynamoDB structure
-            # user_id (Partition Key) -> The GitHub username of the person who pushed
-            # record_id (Sort Key)    -> commit_#HASH to keep every entry isolated and unique
+            # 🔥 NEW: Send the raw commit text to the AI engine!
+            print(f"🤖 Sending commit '{raw_msg[:30]}...' to the AI engine...")
+            ai_summary = call_llm(repository_name, raw_msg)
+            print(f"✨ Generated Summary: {ai_summary}")
+            
+            # Persist everything beautifully to the database
             table.put_item(
                 Item={
                     'user_id': pusher_name,
                     'record_id': f"commit_{commit_id}",
                     'repository': repository_name,
-                    'commit_message': commit_msg,
+                    'raw_commit_message': raw_msg,
+                    'commit_message': ai_summary, # 👈 Overwriting with the beautiful executive summary!
                     'pushed_at': commit_time,
                     'processed_at': datetime.utcnow().isoformat(),
-                    'status': 'PENDING_AI_SUMMARY' # We will use this flag later when we stitch in OpenAI!
+                    'status': 'COMPLETED' # 🎉 Updated state indicator!
                 }
             )
-            print(f"✅ Successfully persisted commit {commit_id[:7]} to database.")
+            print(f"✅ Successfully persisted processed commit {commit_id[:7]}.")
 
-        return {
-            "statusCode": 201,
-            "body": json.dumps({"status": "success", "inserted_commits": len(commits)})
-        }
+        return {"statusCode": 201, "body": json.dumps({"status": "success"})}
 
     except Exception as e:
-        print(f"❌ Critical Ingestion Error encountered: {str(e)}")
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"status": "error", "message": "Failed to ingest webhook payload."})
-        }
+        print(f"❌ Error: {str(e)}")
+        return {"statusCode": 500, "body": json.dumps({"status": "error"})}
