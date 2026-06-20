@@ -6,7 +6,8 @@ from aws_cdk import (
     aws_iam as iam,  
     RemovalPolicy,
     aws_apigatewayv2 as apigwv2,
-    Duration
+    Duration,
+    CfnOutput
 
 )
 from aws_cdk.aws_apigatewayv2_integrations import HttpLambdaIntegration
@@ -33,26 +34,83 @@ class GitStandUpStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset("lambda"),
             handler="webhook_worker.handler",
-            timeout=Duration.minutes(1),
+            timeout=Duration.seconds(10),
             environment={
                 "TABLE_NAME": git_standup_table.table_name
             }
         )
 
-        git_standup_table.grant_write_data(webhook_worker)
+        manual_note_worker = _lambda.Function(
+            self, "ManualNoteWorkerFunction",
+            runtime=_lambda.Runtime.PYTHON_3_11,
+            code=_lambda.Code.from_asset("lambda"),
+            handler="manual_note_worker.handler",
+            timeout=Duration.seconds(30), # Fast database write, doesn't need 1 minute
+            environment={
+                "TABLE_NAME": git_standup_table.table_name
+            }
+        )
 
-        webhook_worker.add_to_role_policy(iam.PolicyStatement(
+        generate_standup_worker = _lambda.Function(
+            self, "GenerateStandupWorkerFunction",
+            runtime=_lambda.Runtime.PYTHON_3_11,
+            code=_lambda.Code.from_asset("lambda"),
+            handler="generate_standup_worker.handler",
+            timeout=Duration.seconds(29), # Keep under API Gateway's 30-second cap
+            environment={
+                "TABLE_NAME": git_standup_table.table_name
+            }
+        )
+        # IAM Security Policies
+        git_standup_table.grant_write_data(webhook_worker)
+        git_standup_table.grant_write_data(manual_note_worker)
+        git_standup_table.grant_read_data(generate_standup_worker)
+        generate_standup_worker.add_to_role_policy(iam.PolicyStatement(
             actions=["bedrock:InvokeModel"],
             resources=["*"]  
         ))
 
-        lambda_integration = HttpLambdaIntegration(
+
+        # API Gateway Integrations
+        webhook_integration = HttpLambdaIntegration(
             "WebhookIntegration",
             handler=webhook_worker
         )
-
+        manual_note_integration = HttpLambdaIntegration(
+            "ManualNoteIntegration",
+            handler=manual_note_worker
+        )
+        generate_standup_integration = HttpLambdaIntegration(
+            "GenerateStandupIntegration",
+            handler=generate_standup_worker
+        )
+        # HTTP API Gateway Setup
         http_api = apigwv2.HttpApi(
             self, "GitStandupWebhookApi",
-            default_integration=lambda_integration,
-            description="Production-grade lightweight public HTTP API for GitHub webhooks."
+            description="Production-grade lightweight public HTTP API for Git StandUp app."
+        )
+
+        http_api.add_routes(
+            path="/",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=webhook_integration
+        )
+
+        http_api.add_routes(
+            path="/notes",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=manual_note_integration
+        )
+
+        http_api.add_routes(
+            path="/standup",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=generate_standup_integration
+        )
+
+        # Printing API Endpoint to terminal
+        CfnOutput(
+            self, "WebhookApiEndpoint",
+            value=http_api.url or "URL not found",
+            description="The base public HTTP API URL"
         )
