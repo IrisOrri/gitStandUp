@@ -3,10 +3,13 @@ from aws_cdk import (
     Stack,
     aws_dynamodb as dynamodb,
     aws_lambda as _lambda,
-    aws_apigateway as apigateway,
     aws_iam as iam,  
-    RemovalPolicy
+    RemovalPolicy,
+    aws_apigatewayv2 as apigwv2,
+    Duration
+
 )
+from aws_cdk.aws_apigatewayv2_integrations import HttpLambdaIntegration
 from constructs import Construct
 
 class GitStandUpStack(Stack):
@@ -30,6 +33,7 @@ class GitStandUpStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset("lambda"),
             handler="webhook_worker.handler",
+            timeout=Duration.minutes(1),
             environment={
                 "TABLE_NAME": git_standup_table.table_name
             }
@@ -42,9 +46,13 @@ class GitStandUpStack(Stack):
             resources=["*"]  
         ))
 
-        api = apigateway.LambdaRestApi(
+        lambda_integration = HttpLambdaIntegration(
+            "WebhookIntegration",
+            handler=webhook_worker
+        )
+
+        http_api = apigwv2.HttpApi(
             self, "GitStandupWebhookApi",
-            handler=webhook_worker,
-            proxy=True,
-            description="Production-grade public ingestion endpoint for GitHub webhook push events."
+            default_integration=lambda_integration,
+            description="Production-grade lightweight public HTTP API for GitHub webhooks."
         )
