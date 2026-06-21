@@ -6,18 +6,33 @@ function App() {
   const [report, setReport] = useState<StandupReport | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Keeping mock data for this preview step so you can check out the colors immediately!
-  const handleLoadMockTemplate = () => {
+  // 🚀 Real API handler connecting directly to your AWS cloud infrastructure
+  const handleFetchLiveStandup = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      const payload: StandupReport = {
-        Today: ["Optimized manual note worker to use explicit timezone-aware datetime footprints"],
-        Tomorrow: ["Finish implementing auth service staging environment variables"],
-        Blockers: ["Waiting on DevOps to provision the updated staging environment variables for the auth service"]
-      };
-      setReport(payload);
-      setIsLoading(false);
-    }, 1200);
+
+    // Your live AWS API Gateway base URL from your CDK deployment stack!
+    const API_BASE_URL = "https://uett5ksz2e.execute-api.ap-south-1.amazonaws.com"; 
+    const USERNAME = "Iris";
+
+    try {
+      // Execute an asynchronous HTTP GET request to /standup?username=Iris
+      const response = await fetch(`${API_BASE_URL}/standup?username=${USERNAME}`);
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status code: ${response.status}`);
+      }
+
+      // Parse the JSON data matching our strict StandupReport interface contract
+      const livePayload: StandupReport = await response.json();
+      
+      // Save the AI-orchestrated response straight into React state to re-render the view
+      setReport(livePayload); 
+    } catch (error) {
+      console.error("API Integration Breakdown:", error);
+      alert("Failed to compile live metrics. Check your browser console log details.");
+    } finally {
+      setIsLoading(false); // Turn off the glowing loading state
+    }
   };
 
   return (
@@ -30,20 +45,40 @@ function App() {
       boxSizing: 'border-box'
     }}>
       {/* BRAND HEADER AREA */}
-      <header style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <div style={{ fontSize: '42px', marginBottom: '10px' }}>🔮</div>
+      <header style={{ 
+        textAlign: 'center', 
+        marginBottom: '50px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        {/* Force block display and line height to prevent any vertical text crowding */}
+        <div style={{ 
+          fontSize: '48px', 
+          display: 'block',
+          lineHeight: '1',
+          marginBottom: '16px', 
+          filter: 'drop-shadow(0 0 12px rgba(167, 139, 250, 0.4))' 
+        }}>
+          🔮
+        </div>
+        
         <h1 style={{
-          fontSize: '32px',
+          fontSize: '40px',
           fontWeight: '800',
-          margin: '0 0 10px 0',
+          margin: '0 0 12px 0',
+          padding: '0',
+          lineHeight: '1.2',
           letterSpacing: '-0.5px',
-          background: 'linear-gradient(135deg, #a78bfa, #f472b6)',
+          background: 'linear-gradient(135deg, #c084fc, #f472b6)',
           WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
+          WebkitTextFillColor: 'transparent',
+          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))', 
         }}>
           gitStandUp Workspace
         </h1>
-        <p style={{ color: '#94a3b8', fontSize: '15px', margin: 0, fontWeight: '400' }}>
+        
+        <p style={{ color: '#94a3b8', fontSize: '16px', margin: 0, fontWeight: '400', letterSpacing: '0.5px' }}>
           Automated Developer Log & AI Standup Engine
         </p>
       </header>
@@ -52,7 +87,7 @@ function App() {
         {/* RUN ENGINE TRIGGER BUTTON */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '36px' }}>
           <button 
-            onClick={handleLoadMockTemplate}
+            onClick={handleFetchLiveStandup}
             disabled={isLoading}
             style={{
               padding: '14px 28px',
