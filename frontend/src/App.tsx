@@ -36,14 +36,7 @@ function App() {
   };
 
   return (
-    <div style={{
-      backgroundColor: '#09070f',
-      color: '#f8fafc',
-      minHeight: '100vh',
-      padding: '60px 20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      boxSizing: 'border-box'
-    }}>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#09070f] text-white p-6 font-sans">
       {/* BRAND HEADER AREA */}
       <header style={{ 
         textAlign: 'center', 
@@ -86,27 +79,22 @@ function App() {
       <main style={{ maxWidth: '650px', margin: '0 auto' }}>
         {/* RUN ENGINE TRIGGER BUTTON */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '36px' }}>
-          <button 
-            onClick={handleFetchLiveStandup}
-            disabled={isLoading}
-            style={{
-              padding: '14px 28px',
-              fontSize: '15px',
-              fontWeight: '700',
-              letterSpacing: '0.5px',
-              color: 'white',
-              background: 'linear-gradient(135deg, #7c3aed, #db2777)',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 20px rgba(124, 58, 237, 0.3)',
-              transform: 'scale(1)',
-              transition: 'all 0.2s ease-in-out',
-              opacity: isLoading ? 0.7 : 1
-            }}
-          >
-            {isLoading ? '🔮 Orchestrating Engine...' : '✨ Generate Standup Draft'}
-          </button>
+          <button
+          onClick={handleFetchLiveStandup}
+          disabled={isLoading}
+          className="
+            px-7 py-3.5 
+            text-[15px] font-bold text-white 
+            bg-gradient-to-r from-purple-600 to-pink-600 
+            rounded-xl shadow-[0_0_15px_rgba(147,51,234,0.3)]
+            cursor-pointer transition-all duration-300 ease-in-out
+            hover:from-purple-500 hover:to-pink-500 
+            hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+          "
+        >
+          {isLoading ? "🔮 Compiling Metrics..." : "✨ Generate Standup Draft"}
+        </button>
         </div>
 
         {/* VISUAL CARDS VIEWER */}
