@@ -7,7 +7,8 @@ from aws_cdk import (
     RemovalPolicy,
     aws_apigatewayv2 as apigwv2,
     Duration,
-    CfnOutput
+    CfnOutput,
+    aws_cognito as cognito
 
 )
 from aws_cdk.aws_apigatewayv2_integrations import HttpLambdaIntegration
@@ -28,6 +29,34 @@ class GitStandUpStack(Stack):
             write_capacity=1,
             removal_policy=RemovalPolicy.DESTROY
         )
+
+        user_pool = cognito.UserPool(
+            self, "GitStandupUserPool",
+            user_pool_name="GitStandupUsers",
+            self_sign_up_enabled=True, 
+            sign_in_aliases=cognito.SignInAliases(email=True), 
+            auto_verify=cognito.AutoVerifiedAttrs(email=True), 
+            password_policy=cognito.PasswordPolicy(
+                min_length=8,
+                require_lowercase=True,
+                require_uppercase=True,
+                require_digits=True,
+                require_symbols=False
+            ),
+            removal_policy=RemovalPolicy.DESTROY 
+        )
+
+        user_pool_client = cognito.UserPoolClient(
+            self, "GitStandupUserPoolClient",
+            user_pool=user_pool,
+            auth_flows=cognito.AuthFlow(
+                user_password=True,
+                user_srp=True 
+            )
+        )
+
+        CfnOutput(self, "CognitoUserPoolId", value=user_pool.user_pool_id)
+        CfnOutput(self, "CognitoAppClientId", value=user_pool_client.user_pool_client_id)
 
         webhook_worker = _lambda.Function(
             self, "WebhookWorkerFunction",
