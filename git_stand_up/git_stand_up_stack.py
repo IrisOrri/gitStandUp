@@ -87,24 +87,29 @@ class GitStandUpStack(Stack):
         # HTTP API Gateway Setup
         http_api = apigwv2.HttpApi(
             self, "GitStandupWebhookApi",
-            description="Production-grade lightweight public HTTP API for Git StandUp app."
+            description="Production-grade lightweight public HTTP API for Git StandUp app.",
+            cors_preflight=apigwv2.CorsPreflightOptions(
+            allow_origins=["*"],
+            allow_methods=[apigwv2.CorsHttpMethod.POST, apigwv2.CorsHttpMethod.OPTIONS, apigwv2.CorsHttpMethod.GET],
+            allow_headers=["Content-Type", "Authorization"]
+            )
         )
 
         http_api.add_routes(
             path="/",
-            methods=[apigwv2.HttpMethod.POST],
+            methods=[apigwv2.HttpMethod.POST,apigwv2.HttpMethod.OPTIONS],
             integration=webhook_integration
         )
 
         http_api.add_routes(
             path="/notes",
-            methods=[apigwv2.HttpMethod.POST],
+            methods=[apigwv2.HttpMethod.POST,apigwv2.HttpMethod.OPTIONS],
             integration=manual_note_integration
         )
 
         http_api.add_routes(
             path="/standup",
-            methods=[apigwv2.HttpMethod.GET],
+            methods=[apigwv2.HttpMethod.GET,apigwv2.HttpMethod.OPTIONS],
             integration=generate_standup_integration
         )
 

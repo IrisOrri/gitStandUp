@@ -9,6 +9,18 @@ table = dynamodb.Table(TABLE_NAME)
 
 def handler(event, context):
     print("Received manual note insertion request...")
+    http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
+    if http_method == 'OPTIONS':
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST,OPTIONS,GET",
+                "Access-Control-Allow-Headers": "Content-Type,Authorization"
+            },
+            "body": ""
+        }
+
     try:
         body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})
         
@@ -40,7 +52,12 @@ def handler(event, context):
         
         return {
             "statusCode": 201, 
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST,OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
             "body": json.dumps({"status": "success", "record_id": record_id})
         }
 
@@ -48,5 +65,9 @@ def handler(event, context):
         print(f"Manual Note Handler Error: {str(e)}")
         return {
             "statusCode": 500, 
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            },
             "body": json.dumps({"status": "error", "message": str(e)})
         }
