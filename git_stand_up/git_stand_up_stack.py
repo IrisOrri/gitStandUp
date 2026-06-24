@@ -11,6 +11,7 @@ from aws_cdk import (
     aws_cognito as cognito
 
 )
+from aws_cdk.aws_apigatewayv2_authorizers import HttpUserPoolAuthorizer
 from aws_cdk.aws_apigatewayv2_integrations import HttpLambdaIntegration
 from constructs import Construct
 
@@ -123,7 +124,11 @@ class GitStandUpStack(Stack):
             allow_headers=["Content-Type", "Authorization"]
             )
         )
-
+        authorizer = HttpUserPoolAuthorizer(
+            "GitStandupHttpAuthorizer",
+            pool=user_pool,
+            user_pool_clients=[user_pool_client]
+        )
         http_api.add_routes(
             path="/",
             methods=[apigwv2.HttpMethod.POST,apigwv2.HttpMethod.OPTIONS],
@@ -133,13 +138,15 @@ class GitStandUpStack(Stack):
         http_api.add_routes(
             path="/notes",
             methods=[apigwv2.HttpMethod.POST,apigwv2.HttpMethod.OPTIONS],
-            integration=manual_note_integration
+            integration=manual_note_integration,
+            authorizer=authorizer
         )
 
         http_api.add_routes(
             path="/standup",
             methods=[apigwv2.HttpMethod.GET,apigwv2.HttpMethod.OPTIONS],
-            integration=generate_standup_integration
+            integration=generate_standup_integration,
+            authorizer=authorizer
         )
 
         # Printing API Endpoint to terminal

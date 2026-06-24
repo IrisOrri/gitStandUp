@@ -19,6 +19,10 @@ function App() {
   const [category, setCategory] = useState<string>('today');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
+  // 🌟 AI Generation state tracking
+  const [standupDraft, setStandupDraft] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
   // 🔐 Check session status and load attributes on startup
   React.useEffect(() => {
     checkCurrentUser();
@@ -78,6 +82,7 @@ function App() {
       await signOut();
       setIsAuthenticated(false);
       setActiveUserEmail('');
+      setStandupDraft('');
     } catch (err) {
       console.error('Error signing out:', err);
     }
@@ -88,9 +93,17 @@ function App() {
     if (!noteText.trim() || !activeUserEmail) return;
     setIsSyncing(true);
     try {
+      // Fetch the active session token from AWS Amplify
+      const { fetchAuthSession } = await import('aws-amplify/auth');
+      const session = await fetchAuthSession();
+      const jwtToken = session.tokens?.idToken?.toString();
+
       const response = await fetch('https://uett5ksz2e.execute-api.ap-south-1.amazonaws.com/notes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}` // 🔐 Secure Authorized Gateway Header
+        },
         body: JSON.stringify({
           user_id: activeUserEmail, 
           category: category,
@@ -98,7 +111,7 @@ function App() {
         })
       });
 
-      if (!response.ok) throw new Error('Network bridge failed');
+      if (!response.ok) throw new Error(`Network bridge failed with status ${response.status}`);
       alert('🎉 Log entry successfully isolated and saved to DynamoDB!');
       setNoteText('');
     } catch (error) {
@@ -106,6 +119,34 @@ function App() {
       console.error('Submission error:', error);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  // ✨ AI SUMMARY GENERATION TRANSCEIVER 
+  const handleGenerateStandup = async () => {
+    setIsGenerating(true);
+    setStandupDraft(''); 
+    try {
+      const { fetchAuthSession } = await import('aws-amplify/auth');
+      const session = await fetchAuthSession();
+      const jwtToken = session.tokens?.idToken?.toString();
+
+      const response = await fetch('https://uett5ksz2e.execute-api.ap-south-1.amazonaws.com/standup', {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${jwtToken}` // 🔐 Authenticates the request block at the API Gate!
+        }
+      });
+
+      if (!response.ok) throw new Error(`Draft synthesis failed with status ${response.status}`);
+      
+      const data = await response.json();
+      setStandupDraft(data.draft || 'No activities logged for today.');
+    } catch (error) {
+      alert('Error communicating with the AI compilation backend.');
+      console.error("AI Generation error:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -215,6 +256,7 @@ function App() {
         </h1>
         <p className="text-sm text-gray-400 mb-10">Automated Developer Log & AI Standup Engine</p>
 
+        {/* Append Manual Log Module */}
         <div className="w-full max-w-3xl bg-[#130f22]/90 border border-purple-900/30 rounded-2xl p-6 shadow-xl mb-6">
           <h3 className="text-md font-semibold text-purple-300 flex items-center mb-4">
             📝 Append Manual Workspace Update
@@ -254,15 +296,32 @@ function App() {
           </div>
         </div>
 
-        <button className="bg-gradient-to-r from-purple-600 via-pink-600 to-pink-700 hover:opacity-95 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg shadow-purple-950/50 hover:shadow-purple-500/10 active:scale-95 transition-all mb-8">
-          ✨ Generate Standup Draft
+        {/* 🌟 Linked AI Engine Button */}
+        <button 
+          onClick={handleGenerateStandup}
+          disabled={isGenerating}
+          className="bg-gradient-to-r from-purple-600 via-pink-600 to-pink-700 hover:opacity-95 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg shadow-purple-950/50 hover:shadow-purple-500/10 active:scale-95 transition-all mb-8 disabled:opacity-50"
+        >
+          {isGenerating ? '🔮 Compiling Activity Logs...' : '✨ Generate Standup Draft'}
         </button>
 
-        <div className="w-full max-w-3xl border border-dashed border-purple-950/50 rounded-2xl p-10 flex flex-col items-center justify-center bg-[#0d0918]/40">
-          <span className="text-2xl mb-2">🔮</span>
-          <p className="text-xs text-gray-500 tracking-wide">
-            Your workspace is idle. Tap the engine button above to compile your records.
-          </p>
+        {/* 🌟 Dynamic Console Logs Display Card */}
+        <div className="w-full max-w-3xl border border-dashed border-purple-900/40 rounded-2xl p-6 bg-[#0d0918]/40 min-h-[150px] flex flex-col justify-center">
+          {standupDraft ? (
+            <div className="text-left animate-fadeIn">
+              <h4 className="text-xs font-semibold text-pink-400 uppercase tracking-wider mb-2">🤖 Generated Standup Draft:</h4>
+              <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{standupDraft}</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center">
+              <span className="text-2xl mb-2">🔮</span>
+              <p className="text-xs text-gray-500 tracking-wide">
+                {isGenerating 
+                  ? 'Amazon Bedrock is aggregating your data stratum and engineering a response...' 
+                  : 'Your workspace is idle. Tap the engine button above to compile your records.'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
