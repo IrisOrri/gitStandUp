@@ -24,14 +24,25 @@ def handler(event, context):
     try:
         body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})
         
-        username = body.get('username')
+        # 👤 Extract identity directly from the verified Cognito token claims
+        authorizer_claims = event.get('requestContext', {}).get('authorizer', {}).get('jwt', {}).get('claims', {})
+        username = authorizer_claims.get('email')
+        
+        # 💡 Fallback to payload body key just in case we ever test locally without a gateway
+        if not username:
+            username = body.get('user_id') or body.get('username')
+            
         note_content = body.get('content')
         category = body.get('category', 'general') 
         
         if not username or not note_content:
             return {
                 "statusCode": 400, 
-                "body": json.dumps({"status": "error", "message": "Missing required fields: username and content"})
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                },
+                "body": json.dumps({"status": "error", "message": "Missing required identity configuration or content body."})
             }
         
         timestamp = datetime.now(timezone.utc)
@@ -40,7 +51,7 @@ def handler(event, context):
         
         table.put_item(
             Item={
-                'user_id': username,
+                'user_id': username, # Maps cleanly to your DynamoDB Partition Key!
                 'record_id': record_id,
                 'content': note_content,
                 'category': category,
@@ -49,18 +60,15 @@ def handler(event, context):
             }
         )
         print(f"Successfully saved manual note [{record_id}] for user {username}.")
-        
         return {
             "statusCode": 201, 
             "headers": {
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "POST,OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type"
+                "Access-Control-Allow-Headers": "Content-Type,Authorization"
             },
             "body": json.dumps({"status": "success", "record_id": record_id})
         }
-
     except Exception as e:
         print(f"Manual Note Handler Error: {str(e)}")
         return {

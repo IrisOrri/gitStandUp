@@ -13,50 +13,44 @@ bedrock_client = boto3.client(service_name='bedrock-runtime', region_name='ap-so
 
 def query_user_records_for_today(username: str) -> list:
     """
-    Queries DynamoDB efficiently by using a range comparison on the Sort Key,
-    then uses robust datetime objects to filter records from the last 24 hours.
+    Queries DynamoDB by Partition Key only to pull the user's complete row set,
+    then evaluates timestamps robustly using datetime objects.
     """
+
     lookback_time = datetime.now(timezone.utc) - timedelta(days=1)
-    sk_date_prefix = lookback_time.strftime("%Y%m%d")
     
     try:
-        notes_response = table.query(
-            KeyConditionExpression=
-                Key('user_id').eq(username) & 
-                Key('record_id').gte(f"note_{sk_date_prefix}")
+        response = table.query(
+            KeyConditionExpression=Key('user_id').eq(username)
         )
-        
-        commits_response = table.query(
-            KeyConditionExpression=
-                Key('user_id').eq(username) & 
-                Key('record_id').begins_with("commit_")
-        )
-        
-        all_items = notes_response.get('Items', []) + commits_response.get('Items', [])
+        all_items = response.get('Items', [])
         filtered_items = []
         
+        print(f"Total raw table items pulled for evaluation: {len(all_items)}")
+        
         for item in all_items:
-            raw_time_str = item.get('processed_at') or item.get('created_at', '')
+            raw_time_str = item.get('created_at') or item.get('processed_at') or item.get('pushed_at')
             if not raw_time_str:
                 continue
                 
             try:
                 clean_time_str = raw_time_str.replace('Z', '+00:00')
+                item_datetime = datetime.fromisoformat(clean_time_str)
                 
-                if '+' not in clean_time_str:
-                    item_datetime = datetime.fromisoformat(clean_time_str).replace(tzinfo=timezone.utc)
-                else:
-                    item_datetime = datetime.fromisoformat(clean_time_str)
-                
+                if item_datetime.tzinfo is None:
+                    item_datetime = item_datetime.replace(tzinfo=timezone.utc)
+
                 if item_datetime >= lookback_time:
                     filtered_items.append(item)
+                    
             except Exception as parse_err:
-                print(f"Skipping record due to timestamp parse error: {str(parse_err)}")
+                print(f"Skipping row parse on timestamp layout error: {str(parse_err)}")
                 
+        print(f"Total verified items matching today's Scrum window: {len(filtered_items)}")
         return filtered_items
         
     except Exception as e:
-        print(f"DynamoDB Single-Table Query Error: {str(e)}")
+        print(f"DynamoDB Identity Query Operational Error: {str(e)}")
         return []
 
 def call_bedrock_orchestration(username: str, git_logs: list, manual_notes: list) -> str:
@@ -88,10 +82,21 @@ def call_bedrock_orchestration(username: str, git_logs: list, manual_notes: list
         return json.dumps({"error": f"Failed to generate unified report: {str(e)}"})
 
 def handler(event, context):
+    http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
+    if http_method == 'OPTIONS':
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET,OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type,Authorization"
+            },
+            "body": ""
+        }
     print("Received standup compilation request...")
     try:
-        query_params = event.get('queryStringParameters', {}) or {}
-        username = query_params.get('username')
+        authorizer_claims = event.get('requestContext', {}).get('authorizer', {}).get('jwt', {}).get('claims', {})
+        username = authorizer_claims.get('email')
         
         if not username:
             return {
@@ -128,4 +133,10 @@ def handler(event, context):
 
     except Exception as e:
         print(f"Compilation Handler Error: {str(e)}")
-        return {"statusCode": 500, "body": json.dumps({"error": "Internal processor breakdown"})}
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Access-Control-Allow-Origin": "*"
+            },
+            "body": json.dumps({"error": "Internal processor breakdown", "details": str(e)})
+        }

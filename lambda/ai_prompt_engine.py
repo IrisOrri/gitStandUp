@@ -22,6 +22,8 @@ Guidelines:
 2. Synthesize overlapping activities or multiple raw commit logs into single, clear achievements.
 3. Cleanly isolate standard progression items into 'in_flight_today' and engineering blockers into 'impediments_and_blockers'.
 4. Strip out technical clutter, file paths, variable names, and cryptic git shorthand messages.
+
+Strict Constraint: Do not invent, extrapolate, or assume upcoming tasks. If the raw data does not explicitly state future items or blockers, leave those respective arrays completely empty: [].
 """
 
 def build_orchestration_prompt(username: str, git_logs: list, manual_notes: list) -> str:
