@@ -1,7 +1,7 @@
 import json
 import os
 import boto3
-from datetime import datetime
+from datetime import datetime,timezone
 
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = os.environ.get('TABLE_NAME', 'GitStandupData')
@@ -12,7 +12,13 @@ def handler(event, context):
     try:
         body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})
         repository_name = body.get('repository', {}).get('name', 'unknown-repo')
-        pusher_name = body.get('pusher', {}).get('name', 'anonymous-coder')
+
+        query_params = event.get('queryStringParameters', {}) or {}
+        user_id_tenant = query_params.get('user_id')
+
+        if not user_id_tenant:
+            user_id_tenant = body.get('pusher', {}).get('name', 'anonymous-coder')
+
         commits = body.get('commits', [])
         
         if not commits:
@@ -25,12 +31,12 @@ def handler(event, context):
             
             table.put_item(
                 Item={
-                    'user_id': pusher_name,
+                    'user_id': user_id_tenant,
                     'record_id': f"commit_{commit_id}",
                     'repository': repository_name,
                     'raw_commit_message': raw_msg,
                     'pushed_at': commit_time,
-                    'processed_at': datetime.utcnow().isoformat(),
+                    'processed_at': datetime.now(timezone.utc).isoformat(),
                     'status': 'COMPLETED'
                 }
             )

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { signIn, signUp, signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
+import { WebhookIntegration } from './components/WebhookIntegration';
 
 function App() {
   // Auth state tracking
@@ -140,14 +141,10 @@ function App() {
       
       const data = await response.json();
       
-      // 🌟 FIXED LOGIC LAYER:
-      // If the response is a pre-parsed JSON object, format it cleanly into strings.
-      // If it contains a 'draft' key, use that. Otherwise, handle it as a direct message or string fallback.
       if (data && typeof data === 'object') {
         if (data.draft) {
           setStandupDraft(data.draft);
         } else {
-          // Formats the pure Scrum JSON object into a clean, human-readable string inside your textarea/card
           const formattedText = Object.entries(data)
             .map(([category, items]) => {
               const itemList = Array.isArray(items) 
@@ -328,7 +325,7 @@ function App() {
         </button>
 
         {/* Dynamic Console Logs Display Card */}
-        <div className="w-full max-w-3xl border border-dashed border-purple-900/40 rounded-2xl p-6 bg-[#0d0918]/40 min-h-[150px] flex flex-col justify-center">
+        <div className="w-full max-w-3xl border border-dashed border-purple-900/40 rounded-2xl p-6 bg-[#0d0918]/40 min-h-[150px] flex flex-col justify-center mb-6">
           {standupDraft ? (
             <div className="text-left animate-fadeIn">
               <h4 className="text-xs font-semibold text-pink-400 uppercase tracking-wider mb-2">🤖 Generated Standup Draft:</h4>
@@ -345,6 +342,9 @@ function App() {
             </div>
           )}
         </div>
+
+        {/* 🟢 Dynamic Webhook Generation Module Integration Block */}
+        <WebhookIntegration userEmail={activeUserEmail || "irisorris02@gmail.com"} />
       </div>
     </div>
   );
