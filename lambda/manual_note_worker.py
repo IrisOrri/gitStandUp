@@ -3,7 +3,6 @@ import os
 import boto3
 from datetime import datetime,timezone
 
-#test commit
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = os.environ.get('TABLE_NAME', 'GitStandupData')
 table = dynamodb.Table(TABLE_NAME)
