@@ -1,58 +1,19 @@
+# gitStandUp 🚀
 
-# Welcome to your CDK Python project!
+**gitStandUp** is a smart assistant that helps developers prepare for daily scrum meetings in seconds. It automatically tracks your code changes through GitHub webhooks and lets you type in quick manual notes about your day. 
 
-This is a blank project for CDK development with Python.
+When it's time for your standup meeting, the app uses AI to combine your code commits and notes into a clean, professional, and ready-to-read daily update.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## 🗺️ System Architecture
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+![gitStandUp Core Architecture](./assets/architecture-diagram.png)
 
-To manually create a virtualenv on MacOS and Linux:
+## 💻 Workspace & Live Demonstration
 
-```
-$ python -m venv .venv
-```
+Below is the live end-to-end operational sequence showing real-time data ingestion. 
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+The demonstration captures a developer setting up a repository webhook, pushing a custom FastAPI Pydantic schema update, logging auxiliary category notes, and executing the orchestration engine to generate a structured daily standup summary via Meta Llama 3 on Amazon Bedrock:
 
-```
-$ source .venv/bin/activate
-```
-
-If you are a Windows platform, you would activate the virtualenv like this:
-
-```
-% .venv\Scripts\activate.bat
-```
-
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
-```
-
-To add additional dependencies, for example other CDK libraries, just add
-them to your `requirements.txt` file and rerun the `python -m pip install -r requirements.txt`
-command.
-
-## Useful commands
-
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
-
-Enjoy!
+<p align="center">
+  <video src="https://github.com/IrisOrri/gitStandUp/raw/main/assets/gitStandUp%20recording.mp4" width="100%" autoplay loop muted controls></video>
+</p>
