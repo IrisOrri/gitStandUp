@@ -19,10 +19,10 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 
 ## 🏆 Engineering Design Wins
 
-### 🔄 1. Webhook Deduplication (Idempotency)
+### 1. Webhook Deduplication (Idempotency)
 * **The Problem:** GitHub webhooks can accidentally fire twice due to network retries, which would normally create duplicate commit entries in the database.
 * **The Fix:** Added a native `ConditionExpression='attribute_not_exists(record_id)'` directly to the DynamoDB write loop inside the `webhook_worker` Lambda. If a duplicate commit hash hits the database, DynamoDB instantly drops it, keeping your data clean.
 
-### 🧮 2. Smart Manual Note Hashing
+### 2. Smart Manual Note Hashing
 * **The Problem:** If a developer clicks "Sync to Workspace" multiple times quickly, it can spam the database with duplicate rows of the exact same text log.
 * **The Fix:** Replaced random timestamps with a deterministic SHA-256 hash generated from the text content (`username + category + note_text`). If they click sync on the same text again, it produces the exact same ID, causing DynamoDB to cleanly overwrite the existing item instead of duplicating it.
