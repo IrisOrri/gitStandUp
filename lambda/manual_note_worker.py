@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 from datetime import datetime,timezone
+import hashlib
 
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = os.environ.get('TABLE_NAME', 'GitStandupData')
@@ -45,14 +46,16 @@ def handler(event, context):
                 "body": json.dumps({"status": "error", "message": "Missing required identity configuration or content body."})
             }
         
+        raw_payload_string = f"{username}_{category}_{note_content.strip()}"
+        unique_hash = hashlib.sha256(raw_payload_string.encode('utf-8')).hexdigest()
+        record_id = f"note_{unique_hash[:16]}"
         timestamp = datetime.now(timezone.utc)
-        formatted_time = timestamp.strftime("%Y%m%d_%H%M%S")
-        record_id = f"note_{formatted_time}"
+        
         
         table.put_item(
             Item={
-                'user_id': username, # Maps cleanly to your DynamoDB Partition Key!
-                'record_id': record_id,
+                'user_id': username, 
+                'record_id': record_id, #if the unique record_id is present it overwrites the record
                 'content': note_content,
                 'category': category,
                 'created_at': timestamp.isoformat(),
