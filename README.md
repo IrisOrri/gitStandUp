@@ -14,6 +14,5 @@ Below is the live end-to-end operational sequence showing real-time data ingesti
 
 The demonstration captures a developer setting up a repository webhook, pushing a custom FastAPI Pydantic schema update, logging auxiliary category notes, and executing the orchestration engine to generate a structured daily standup summary via Meta Llama 3 on Amazon Bedrock:
 
-<p align="center">
-  <video src="https://github.com/IrisOrri/gitStandUp/raw/main/assets/gitStandUp%20recording.mp4" width="100%" autoplay loop muted controls></video>
-</p>
+
+[![Watch the Demo](https://img.shields.io/badge/Demo-Watch%20On%20YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/wLtSsiu4rlc)
