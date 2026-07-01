@@ -35,3 +35,7 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 ### 4. Infrastructure-Level CORS Handshaking
 * **The Problem:** Processing browser security preflight (`OPTIONS`) requests inside a serverless Lambda function spikes invocation costs, and adds unnecessary network latency to frontend actions.
 * **The Fix:** Configured native `cors_preflight` rules directly inside the **AWS API Gateway V2 HTTP API** construct and stripped manual `OPTIONS` routes from the backend. Browser security handshakes are now fully resolved at the network routing edge, completely isolating the downstream Lambda function from handling routine cross-origin validation traffic.
+
+### 📊 5. GSI-Free Single-Table Cost Optimization
+* **The Problem:** Creating a Global Secondary Index (GSI) on timestamp fields (`created_at`/`pushed_at`) to filter developer activity logs by specific date ranges increases storage costs and inflates active cloud billing.
+* **The Fix:** Optimized data fetching by querying strictly through the primary keys (`Partition Key = user_id`). Instead of maintaining expensive database indexes, the pipeline pulls the user's complete row set and handles the 24-hour Scrum lookback window filtering in memory using native **Python `datetime` processing**, keeping database costs at an absolute minimum.
