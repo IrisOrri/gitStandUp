@@ -43,3 +43,15 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 ### 6. Context-Optimized LLM Token Controls
 * **The Problem:** Sending raw database JSON structures directly into a Large Language Model (LLM) bloats input token counts, inflates API runtime costs, and dilutes model focus.
 * **The Fix:** Implemented an enrichment filter inside `generate_standup_worker` that isolates and extracts raw text metadata arrays (`git_logs` and `manual_notes`) before building the final prompt. Additionally, applied a strict maximum ceiling parameter (`"max_gen_len": 800`) to the Meta Llama 3 payload to optimize context relevance and completely block runaway billing overhead.
+
+## 🛠️ Tech Stack Quick Reference
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | React, TypeScript, Vite | Interactive developer dashboard UI |
+| **Deployment** | AWS Cloud Development Kit (CDK) | Infrastructure-as-Code (IaC) python stacks |
+| **API Edge** | AWS API Gateway V2 (HTTP API) | Route handling, global CORS, edge authorization |
+| **Identity** | AWS Cognito User Pools | JWT identity token validation and user access |
+| **Compute** | AWS Lambda (Python runtime) | Decoupled serverless event workers and orchestrators |
+| **Database** | Amazon DynamoDB | NoSQL single-table storage for commits and manual notes |
+| **AI Intell
