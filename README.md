@@ -76,7 +76,7 @@ source .venv/bin/activate          # macOS / Linux
 # .venv\Scripts\Activate.ps1       # Windows (PowerShell)
 
 # Install required stack dependencies
-pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # Bootstrap and deploy your infrastructure resources straight to AWS
 cdk bootstrap
