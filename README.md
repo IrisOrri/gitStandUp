@@ -64,7 +64,7 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 # 🎛️ 1. INFRASTRUCTURE & BACKEND DEPLOYMENT (AWS CDK)
 
 # Clone the repository and navigate to the project root
-git clone https://github.com/your-username/gitstandup.git
+git clone https://github.com/IrisOrri/gitStandUp.git
 cd gitstandup
 
 # Move into the backend infrastructure workspace
