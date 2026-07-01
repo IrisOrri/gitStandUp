@@ -56,6 +56,9 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 | **Database** | Amazon DynamoDB | NoSQL single-table storage for commits and manual notes |
 | **AI Intelligence** | Amazon Bedrock (Meta Llama 3) | Generative engine for automated Scrum updates |
 
+## 🚀 Local Setup & Deployment
+
+```bash
 # 📋 PREREQUISITES: Ensure you have Node.js (v18+), Python (v3.10+), and AWS CLI configured.
 
 # 🎛️ 1. INFRASTRUCTURE & BACKEND DEPLOYMENT (AWS CDK)
@@ -98,6 +101,11 @@ npm install
 # (Replace the placeholders below with your explicit AWS deployment outputs)
 cat << EOF > .env.local
 VITE_AWS_API_URL=https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com
+VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
+EOF
+
+# Spin up the local development preview server
+npm run dev
 VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
 EOF
 
