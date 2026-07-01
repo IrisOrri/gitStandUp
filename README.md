@@ -26,3 +26,7 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 ### 2. Smart Manual Note Hashing
 * **The Problem:** If a developer clicks "Sync to Workspace" multiple times quickly, it can spam the database with duplicate rows of the exact same text log.
 * **The Fix:** Replaced random timestamps with a deterministic SHA-256 hash generated from the text content (`username + category + note_text`). If they click sync on the same text again, it produces the exact same ID, causing DynamoDB to cleanly overwrite the existing item instead of duplicating it.
+
+### 3. Edge-Level Authorization & Compute Isolation
+* **The Problem:** Running custom code inside an AWS Lambda function just to validate user identity tokens on every API call introduces massive performance latency (cold starts) and wastes serverless invocation costs on unauthorized traffic.
+* **The Fix:** Integrated **AWS API Gateway V2 HTTP Authorizers** directly with **AWS Cognito User Pools**. JWT access tokens are cryptographically checked at the routing layer boundary. Invalid or malicious requests are dropped instantly at the cloud network edge, completely isolating Lambda functions from processing unauthorized traffic.
