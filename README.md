@@ -64,7 +64,7 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 # 🎛️ 1. INFRASTRUCTURE & BACKEND DEPLOYMENT (AWS CDK)
 
 # Clone the repository and navigate to the project root
-git clone [https://github.com/IrisOrri/gitStandUp.git](https://github.com/IrisOrri/gitStandUp.git)
+git clone https://github.com/IrisOrri/gitStandUp.git
 cd gitStandUp
 
 # Create a localized Python virtual environment container directly in the root
