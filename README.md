@@ -52,6 +52,64 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 | **Deployment** | AWS Cloud Development Kit (CDK) | Infrastructure-as-Code (IaC) python stacks |
 | **API Edge** | AWS API Gateway V2 (HTTP API) | Route handling, global CORS, edge authorization |
 | **Identity** | AWS Cognito User Pools | JWT identity token validation and user access |
-| **Compute** | AWS Lambda (Python runtime) | Decoupled serverless event workers and orchestrators |
+| **Compute** | AWS Lambda  | Decoupled serverless event workers and orchestrators |
 | **Database** | Amazon DynamoDB | NoSQL single-table storage for commits and manual notes |
 | **AI Intelligence** | Amazon Bedrock (Meta Llama 3) | Generative engine for automated Scrum updates |
+
+## 🚀 Local Setup & Deployment
+
+# ==============================================================================
+# 🛠️ 1. INFRASTRUCTURE & BACKEND DEPLOYMENT (AWS CDK)
+# ==============================================================================
+
+# 1. Clone the repository and navigate to the root directory
+git clone https://github.com/your-username/gitstandup.git
+cd gitstandup
+
+# 2. Enter the backend infrastructure workspace
+cd infrastructure
+
+# 3. Create and spin up a localized Python virtual environment
+python -m venv .venv
+
+# Activate on macOS/Linux:
+source .venv/bin/activate
+# Activate on Windows (CMD):
+# .venv\Scripts\activate.bat
+# Activate on Windows (PowerShell):
+# .venv\Scripts\Activate.ps1
+
+# 4. Install production & infrastructure dependencies
+pip install -r requirements.txt
+
+# 5. Bootstrap your AWS environment (Only required if you haven't used CDK in this region before)
+cdk bootstrap
+
+# 6. Synthesize the CloudFormation template and deploy to AWS
+cdk synth
+cdk deploy
+
+# ⚠️ CRITICAL NOTE: Once deployment completes, copy the generated terminal outputs:
+# - HttpApiUrl (Your API Gateway Endpoint)
+# - UserPoolClientId (Your Cognito App Client ID)
+
+
+# ==============================================================================
+# 💻 2. FRONTEND LOCAL CONFIGURATION (VITE + REACT)
+# ==============================================================================
+
+# 1. Navigate from the infrastructure folder into the frontend workspace directory
+cd ../frontend
+
+# 2. Install the required Node modules and frontend dependencies
+npm install
+
+# 3. Establish your local environment configurations
+# Replace the placeholder URLs below with the explicit strings copied from your CDK outputs!
+cat << EOF > .env.local
+VITE_AWS_API_URL=https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com
+VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
+EOF
+
+# 4. Launch the local Vite development server
+npm run dev
