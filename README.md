@@ -32,6 +32,6 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 * **The Fix:** Integrated **AWS API Gateway V2 HTTP Authorizers** directly with **AWS Cognito User Pools**. JWT access tokens are cryptographically checked at the routing layer boundary. Invalid or malicious requests are dropped instantly at the cloud network edge, completely isolating Lambda functions from processing unauthorized traffic.
 
 
-### 🌐 4. Infrastructure-Level CORS Handshaking
+### 4. Infrastructure-Level CORS Handshaking
 * **The Problem:** Processing browser security preflight (`OPTIONS`) requests inside a serverless Lambda function spikes invocation costs, and adds unnecessary network latency to frontend actions.
 * **The Fix:** Configured native `cors_preflight` rules directly inside the **AWS API Gateway V2 HTTP API** construct and stripped manual `OPTIONS` routes from the backend. Browser security handshakes are now fully resolved at the network routing edge, completely isolating the downstream Lambda function from handling routine cross-origin validation traffic.
