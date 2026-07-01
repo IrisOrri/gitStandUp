@@ -56,25 +56,12 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 | **Database** | Amazon DynamoDB | NoSQL single-table storage for commits and manual notes |
 | **AI Intelligence** | Amazon Bedrock (Meta Llama 3) | Generative engine for automated Scrum updates |
 
-## 🚀 Local Setup & Deployment
+# 📋 PREREQUISITES: Ensure you have Node.js (v18+), Python (v3.10+), and AWS CLI configured.
 
-Follow these streamlined instructions to stand up the cloud backend infrastructure and launch your local React user interface dashboard workspace.
+# 🎛️ 1. INFRASTRUCTURE & BACKEND DEPLOYMENT (AWS CDK)
 
-### 📋 Prerequisites
-Ensure you have the following CLI utilities authenticated and configured on your machine:
-* **Node.js** (v18+) & `npm`
-* **Python** (v3.10+) & `pip`
-* **AWS CLI** (Configured with an IAM user containing Administrative access)
-
----
-
-### 🎛️ 1. Infrastructure & Backend Deployment (AWS CDK)
-
-Run the following command sequences inside your terminal to synthesize and launch your serverless backend application services:
-
-```bash
 # Clone the repository and navigate to the project root
-git clone [https://github.com/your-username/gitstandup.git](https://github.com/your-username/gitstandup.git)
+git clone https://github.com/your-username/gitstandup.git
 cd gitstandup
 
 # Move into the backend infrastructure workspace
@@ -95,6 +82,12 @@ pip install -r requirements.txt
 cdk bootstrap
 cdk deploy
 
+# ⚠️ CRITICAL NOTE: Once the deployment finishes, look at your terminal output!
+# Copy down the generated HttpApiUrl and UserPoolClientId values.
+
+
+# 💻 2. FRONTEND LOCAL CONFIGURATION (REACT + VITE)
+
 # Navigate from the infrastructure folder into the frontend directory
 cd ../frontend
 
@@ -104,7 +97,7 @@ npm install
 # Initialize your local environmental configuration profile
 # (Replace the placeholders below with your explicit AWS deployment outputs)
 cat << EOF > .env.local
-VITE_AWS_API_URL=[https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com](https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com)
+VITE_AWS_API_URL=https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com
 VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
 EOF
 
