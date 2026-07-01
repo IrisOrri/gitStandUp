@@ -30,3 +30,8 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 ### 3. Edge-Level Authorization & Compute Isolation
 * **The Problem:** Running custom code inside an AWS Lambda function just to validate user identity tokens on every API call introduces massive performance latency (cold starts) and wastes serverless invocation costs on unauthorized traffic.
 * **The Fix:** Integrated **AWS API Gateway V2 HTTP Authorizers** directly with **AWS Cognito User Pools**. JWT access tokens are cryptographically checked at the routing layer boundary. Invalid or malicious requests are dropped instantly at the cloud network edge, completely isolating Lambda functions from processing unauthorized traffic.
+
+
+### 🌐 4. Infrastructure-Level CORS Handshaking
+* **The Problem:** Processing browser security preflight (`OPTIONS`) requests inside a serverless Lambda function spikes invocation costs, and adds unnecessary network latency to frontend actions.
+* **The Fix:** Configured native `cors_preflight` rules directly inside the **AWS API Gateway V2 HTTP API** construct and stripped manual `OPTIONS` routes from the backend. Browser security handshakes are now fully resolved at the network routing edge, completely isolating the downstream Lambda function from handling routine cross-origin validation traffic.
