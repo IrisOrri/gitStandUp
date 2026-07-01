@@ -64,13 +64,10 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 # 🎛️ 1. INFRASTRUCTURE & BACKEND DEPLOYMENT (AWS CDK)
 
 # Clone the repository and navigate to the project root
-git clone https://github.com/IrisOrri/gitStandUp.git
-cd gitstandup
+git clone [https://github.com/IrisOrri/gitStandUp.git](https://github.com/IrisOrri/gitStandUp.git)
+cd gitStandUp
 
-# Move into the backend infrastructure workspace
-cd infrastructure
-
-# Create a localized Python virtual environment container
+# Create a localized Python virtual environment container directly in the root
 python -m venv .venv
 
 # Activate the environment based on your operating system:
@@ -91,8 +88,8 @@ cdk deploy
 
 # 💻 2. FRONTEND LOCAL CONFIGURATION (REACT + VITE)
 
-# Navigate from the infrastructure folder into the frontend directory
-cd ../frontend
+# Move from the root directory straight into the frontend folder
+cd frontend
 
 # Install node module asset dependencies
 npm install
@@ -100,12 +97,7 @@ npm install
 # Initialize your local environmental configuration profile
 # (Replace the placeholders below with your explicit AWS deployment outputs)
 cat << EOF > .env.local
-VITE_AWS_API_URL=https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com
-VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
-EOF
-
-# Spin up the local development preview server
-npm run dev
+VITE_AWS_API_URL=[https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com](https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com)
 VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
 EOF
 
