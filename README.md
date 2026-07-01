@@ -54,4 +54,4 @@ The demonstration captures a developer setting up a repository webhook, pushing 
 | **Identity** | AWS Cognito User Pools | JWT identity token validation and user access |
 | **Compute** | AWS Lambda (Python runtime) | Decoupled serverless event workers and orchestrators |
 | **Database** | Amazon DynamoDB | NoSQL single-table storage for commits and manual notes |
-| **AI Intell
+| **AI Intelligence** | Amazon Bedrock (Meta Llama 3) | Generative engine for automated Scrum updates |
