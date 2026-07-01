@@ -96,10 +96,10 @@ npm install
 
 # Initialize your local environmental configuration profile
 # (Replace the placeholders below with your explicit AWS deployment outputs)
-cat << EOF > .env.local
-VITE_AWS_API_URL=[https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com](https://your-api-gateway-id.execute-api.ap-south-1.amazonaws.com)
-VITE_COGNITO_CLIENT_ID=your_actual_cognito_client_id_here
-EOF
+@'
+VITE_AWS_API_URL=https://7fmmlyflrf.execute-api.ap-south-1.amazonaws.com/
+VITE_COGNITO_CLIENT_ID=35q2ouhtjmr8ak9pvqifpafiir
+'@ | Out-File -FilePath .env.local -Encoding utf8
 
 # Spin up the local development preview server
 npm run dev
