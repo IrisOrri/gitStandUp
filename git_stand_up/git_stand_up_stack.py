@@ -141,23 +141,12 @@ class GitStandUpStack(Stack):
             integration=manual_note_integration,
             authorizer=authorizer
         )
-        http_api.add_routes(
-            path="/notes",
-            methods=[apigwv2.HttpMethod.OPTIONS], 
-            integration=manual_note_integration
-        )
 
         http_api.add_routes(
             path="/standup",
             methods=[apigwv2.HttpMethod.GET],
             integration=generate_standup_integration,
             authorizer=authorizer
-        )
-
-        http_api.add_routes(
-            path="/standup",
-            methods=[apigwv2.HttpMethod.OPTIONS], 
-            integration=generate_standup_integration
         )
 
         # Printing API Endpoint to terminal

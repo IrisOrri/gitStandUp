@@ -10,17 +10,6 @@ table = dynamodb.Table(TABLE_NAME)
 
 def handler(event, context):
     print("Received manual note insertion request...")
-    http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
-    if http_method == 'OPTIONS':
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "POST,OPTIONS,GET",
-                "Access-Control-Allow-Headers": "Content-Type,Authorization"
-            },
-            "body": ""
-        }
 
     try:
         body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})

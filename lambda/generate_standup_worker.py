@@ -82,17 +82,6 @@ def call_bedrock_orchestration(username: str, git_logs: list, manual_notes: list
         return json.dumps({"error": f"Failed to generate unified report: {str(e)}"})
 
 def handler(event, context):
-    http_method = event.get('requestContext', {}).get('http', {}).get('method', '')
-    if http_method == 'OPTIONS':
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET,OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type,Authorization"
-            },
-            "body": ""
-        }
     print("Received standup compilation request...")
     try:
         authorizer_claims = event.get('requestContext', {}).get('authorizer', {}).get('jwt', {}).get('claims', {})
